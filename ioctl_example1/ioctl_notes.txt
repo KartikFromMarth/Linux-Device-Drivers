@@ -1,0 +1,55 @@
+The ioctl function is useful for implementing a device driver to set the configuration on the device. e.g. a printer that has configuration options to check and set the font family, font size etc. ioctl could be used to get the current font as well as set the font to a new one. A user application uses ioctl to send a code to a printer telling it to return the current font or to set the font to a new one.
+
+/* Syntax */
+
+int ioctl(int fd, int request, ...)
+
+Parameters.
+1. fd is file descriptor, the one returned by open.
+2. request is request code. e.g GETFONT will get the current font from the printer, SETFONT will set the font on the printer;
+3. the third argument is void *. Depending on the second argument, the third may or may not be present, e.g. if the second argument is     SETFONT, the third argument can be the font name such as "Arial";
+
+int request is not just a macro. A user application is required to generate a request code and the device driver module to determine which configuration on device must be played with. The application sends the request code using ioctl and then uses the request code in the device driver module to determine which action to perform.
+
+A request code has 4 main parts
+
+1. A Magic number - 8 bits
+2. A sequence number - 8 bits
+3. Argument type (typically 14 bits), if any.
+4. Direction of data transfer (2 bits).  
+
+If the request code is SETFONT to set font on a printer, the direction for data transfer will be from user application to device driver module (The user application sends the font name "Arial" to the printer). If the request code is GETFONT, direction is from printer to the user application.
+
+In order to generate a request code, Linux provides some predefined function-like macros.
+
+1. _IO(MAGIC, SEQ_NO) both are 8 bits, 0 to 255, e.g. let us say we want to pause printer. This does not require a data transfer. So we would generate the request code as below
+
+#define PRIN_MAGIC 'P'
+#define NUM 0
+#define PAUSE_PRIN __IO(PRIN_MAGIC, NUM) 
+
+and now use ioctl as
+
+ret_val = ioctl(fd, PAUSE_PRIN);
+
+The corresponding system call in the driver module will receive the code and pause the printer.
+
+
+2. __IOW(MAGIC, SEQ_NO, TYPE) MAGIC and SEQ_NO are the same as above, and TYPE gives the type of the next argument, recall the third argument of ioctl is void *. W in __IOW indicates that the data flow is from user application to driver module. As an example, suppose we want to set the printer font to "Arial".
+
+#define PRIN_MAGIC 'S'
+#define SEQ_NO 1
+#define SETFONT __IOW(PRIN_MAGIC, SEQ_NO, unsigned long)
+ further,
+
+char *font = "Arial";
+ret_val = ioctl(fd, SETFONT, font); 
+
+
+Now font is a pointer, which means it is an address best represented as unsigned long, hence the third part of _IOW mentions type as such. Also, this address of font is passed to corresponding system call implemented in device driver module as unsigned long and we need to cast it to proper type before using it. Kernel space can access user space and hence this works. other two function-like macros are __IOR(MAGIC, SEQ_NO, TYPE) and __IORW(MAGIC, SEQ_NO, TYPE) where the data flow will be from kernel space to user space and both ways respectively.
+
+
+
+
+
+
