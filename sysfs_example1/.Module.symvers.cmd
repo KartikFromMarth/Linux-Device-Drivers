@@ -1,0 +1,1 @@
+savedcmd_/home/kartik/Desktop/sysfs_example1/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/kartik/Desktop/sysfs_example1/Module.symvers -T /home/kartik/Desktop/sysfs_example1/modules.order -i Module.symvers -e 

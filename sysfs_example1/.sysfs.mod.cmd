@@ -1,0 +1,1 @@
+savedcmd_/home/kartik/Desktop/sysfs_example1/sysfs.mod := printf '%s\n'   sysfs.o | awk '!x[$$0]++ { print("/home/kartik/Desktop/sysfs_example1/"$$0) }' > /home/kartik/Desktop/sysfs_example1/sysfs.mod
